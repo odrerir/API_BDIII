@@ -14,6 +14,7 @@ import api_bd.hardware.domain.model.ErroResposta;
 
 @ControllerAdvice
 public class RestExceptionHandler {
+        
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErroResposta> handlerResourceNotFoundException(
             ResourceNotFoundException ex) {

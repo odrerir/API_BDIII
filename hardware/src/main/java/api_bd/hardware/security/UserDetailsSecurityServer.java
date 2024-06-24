@@ -13,16 +13,13 @@ import api_bd.hardware.domain.repository.UsuarioRepository;
 
 
 @Component
-public class UserDetailsSecurityServer 
-                implements UserDetailsService {
+public class UserDetailsSecurityServer implements UserDetailsService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) 
-            throws UsernameNotFoundException {
-        Optional<Usuario> optUsuario = usuarioRepository
-        .findByEmail(username);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<Usuario> optUsuario = usuarioRepository.findByEmail(username);
         if(optUsuario.isEmpty()){
             throw new UsernameNotFoundException("Usuário ou Senha Inválidos");
         }

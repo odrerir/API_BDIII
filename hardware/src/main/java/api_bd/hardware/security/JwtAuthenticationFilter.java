@@ -76,7 +76,7 @@ public class JwtAuthenticationFilter
 
             String jsonResponse = new Gson().toJson(loginResponseDTO);
             response.getWriter().write(jsonResponse);
-            response.getWriter().flush(); 
+            response.getWriter().flush();
         } catch (IOException e) {
             throw new IOException("Erro ao escrever a resposta da autenticação", e);
         }
