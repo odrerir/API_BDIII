@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Hardware {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idHardware")

@@ -5,6 +5,7 @@ import api_bd.hardware.domain.dto.hardware.HardwareResponseDTO;
 import api_bd.hardware.domain.exception.BadRequestException;
 import api_bd.hardware.domain.exception.ResourceNotFoundException;
 import api_bd.hardware.domain.model.Hardware;
+import api_bd.hardware.domain.model.Usuario;
 import api_bd.hardware.domain.repository.HardwareRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class HardwareService implements ICRUDService<HardwareRequestDTO, Hardwar
 
     @Override
     public List<HardwareResponseDTO> obterTodos() {
-        List<Hardware> hardwares = hardwareRepository.findAll();
+        List<Hardware> hardwares = hardwareRepository.findByUsuario(usuario);
         return hardwares.stream()
                 .map(hardware -> mapper.map(hardware, HardwareResponseDTO.class))
                 .collect(Collectors.toList());
@@ -49,7 +50,7 @@ public class HardwareService implements ICRUDService<HardwareRequestDTO, Hardwar
         }
 
         Hardware hardware = mapper.map(dto, Hardware.class);
-        hardware.setId(null); // Certifique-se de que o ID seja nulo para evitar sobrescrita indevida
+        hardware.setId(null); 
 
         hardware = hardwareRepository.save(hardware);
 
@@ -64,7 +65,7 @@ public class HardwareService implements ICRUDService<HardwareRequestDTO, Hardwar
         }
 
         Hardware hardware = mapper.map(dto, Hardware.class);
-        hardware.setId(id); // Garante que o ID seja definido para atualização
+        hardware.setId(id); 
 
         hardware = hardwareRepository.save(hardware);
 

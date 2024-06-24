@@ -31,8 +31,7 @@ public class JwtAuthenticationFilter
     private AuthenticationManager authenticationManager;
     private JwtUtil jwtUtil;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
-            JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
         super();
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
@@ -45,7 +44,8 @@ public class JwtAuthenticationFilter
             LoginRequestDTO login = new ObjectMapper()
                     .readValue(request.getInputStream(),
                             LoginRequestDTO.class);
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(login.getEmail(),login.getSenha());
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(login.getEmail(),
+                    login.getSenha());
             Authentication auth = authenticationManager.authenticate(authToken);
             return auth;
         } catch (BadCredentialsException e) {
@@ -59,25 +59,35 @@ public class JwtAuthenticationFilter
     protected void successfulAuthentication(HttpServletRequest request,
             HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException {
-        Usuario usuario = (Usuario) authResult.getPrincipal();
-        String token = jwtUtil.gerarToken(authResult);
-        UsuarioResponseDTO usuarioResponse = new UsuarioResponseDTO();
-        usuarioResponse.setId(usuario.getId());
-        usuarioResponse.setNome(usuario.getNome());
-        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
-        loginResponseDTO.setToken("Bearer " + token);
-        loginResponseDTO.setUsuario(usuarioResponse);
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json");
-        response.getWriter().write(new Gson().toJson(loginResponseDTO));
+        try {
+            Usuario usuario = (Usuario) authResult.getPrincipal();
+            String token = jwtUtil.gerarToken(authResult);
+
+            UsuarioResponseDTO usuarioResponse = new UsuarioResponseDTO();
+            usuarioResponse.setId(usuario.getId());
+            usuarioResponse.setNome(usuario.getNome());
+
+            LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+            loginResponseDTO.setToken("Bearer " + token);
+            loginResponseDTO.setUsuario(usuarioResponse);
+
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+
+            String jsonResponse = new Gson().toJson(loginResponseDTO);
+            response.getWriter().write(jsonResponse);
+            response.getWriter().flush(); // Certifique-se de que a resposta seja enviada
+        } catch (IOException e) {
+            throw new IOException("Erro ao escrever a resposta da autenticação", e);
+        }
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,
-        HttpServletResponse response,AuthenticationException failed)
-        throws IOException, ServletException {
-             String dataHora = ConversorData.converterDateParaDataHora(new Date());
-        ErroResposta erro = new ErroResposta(dataHora,401, "Unauthorized", failed.getMessage());
+            HttpServletResponse response, AuthenticationException failed)
+            throws IOException, ServletException {
+        String dataHora = ConversorData.converterDateParaDataHora(new Date());
+        ErroResposta erro = new ErroResposta(dataHora, 401, "Unauthorized", failed.getMessage());
         response.setStatus(401);
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json");

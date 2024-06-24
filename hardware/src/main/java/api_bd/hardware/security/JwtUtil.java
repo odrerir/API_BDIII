@@ -68,5 +68,4 @@ public class JwtUtil {
       Date agora = new Date(System.currentTimeMillis());
       return email != null && agora.before(dataExpiracao);
    }
-   
 }

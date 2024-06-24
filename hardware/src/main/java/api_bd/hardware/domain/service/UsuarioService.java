@@ -1,6 +1,7 @@
 package api_bd.hardware.domain.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -25,20 +26,17 @@ public class UsuarioService implements ICRUDService<UsuarioRequestDTO, UsuarioRe
     private ModelMapper mapper;
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public List<UsuarioResponseDTO> obterTodos() {
         List<Usuario> usuarios = usuarioRepository.findAll();
-        return usuarios.stream()
-                .map(usuario -> mapper.map(usuario, UsuarioResponseDTO.class))
-                .collect(Collectors.toList());
+        return usuarios.stream().map(usuario -> mapper.map(usuario, UsuarioResponseDTO.class)).collect(Collectors.toList());
     }
 
     @Override
     public UsuarioResponseDTO obterPorId(Long id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o ID: " + id));
+        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o ID: " + id));
         return mapper.map(usuario, UsuarioResponseDTO.class);
     }
 
@@ -46,13 +44,17 @@ public class UsuarioService implements ICRUDService<UsuarioRequestDTO, UsuarioRe
     public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
         validarDTO(dto);
 
-        if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new BadRequestException("Já existe um usuário cadastrado com esse email!");
+        Optional<Usuario> optUsuario = usuarioRepository.findByEmail(dto.getEmail());
+        if (optUsuario.isPresent()) {
+            throw new BadRequestException("Já existe um usuário cadastrado com esse email: " + dto.getEmail());
         }
 
         Usuario usuario = mapper.map(dto, Usuario.class);
-        criptografarSenha(usuario);
+        String senhaCriptografada = passwordEncoder.encode(usuario.getSenha());
+        usuario.setSenha(senhaCriptografada);
+        usuario.setId(null);
         usuario = usuarioRepository.save(usuario);
+
         return mapper.map(usuario, UsuarioResponseDTO.class);
     }
 
@@ -65,8 +67,10 @@ public class UsuarioService implements ICRUDService<UsuarioRequestDTO, UsuarioRe
 
         usuarioBanco.setNome(dto.getNome());
         usuarioBanco.setEmail(dto.getEmail());
+
         if (dto.getSenha() != null && !dto.getSenha().isEmpty()) {
-            criptografarSenha(usuarioBanco, dto.getSenha());
+            String senhaCriptografada = passwordEncoder.encode(dto.getSenha());
+            usuarioBanco.setSenha(senhaCriptografada);
         }
 
         Usuario usuarioAtualizado = usuarioRepository.save(usuarioBanco);
@@ -84,15 +88,5 @@ public class UsuarioService implements ICRUDService<UsuarioRequestDTO, UsuarioRe
         if (dto.getEmail() == null || dto.getSenha() == null) {
             throw new BadRequestException("Email e Senha são obrigatórios!");
         }
-    }
-
-    private void criptografarSenha(Usuario usuario) {
-        String senhaCriptografada = bCryptPasswordEncoder.encode(usuario.getSenha());
-        usuario.setSenha(senhaCriptografada);
-    }
-
-    private void criptografarSenha(Usuario usuario, String novaSenha) {
-        String senhaCriptografada = bCryptPasswordEncoder.encode(novaSenha);
-        usuario.setSenha(senhaCriptografada);
     }
 }
