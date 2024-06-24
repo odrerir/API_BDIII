@@ -14,8 +14,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public class JwtAuthorizationFilter 
-                     extends BasicAuthenticationFilter{
+public class JwtAuthorizationFilter extends BasicAuthenticationFilter{
     private JwtUtil jwtUtil;
     private UserDetailsSecurityServer userDetailsSecurityServer;
     
@@ -44,14 +43,11 @@ public class JwtAuthorizationFilter
         chain.doFilter(request, response);
     }
 
-    private UsernamePasswordAuthenticationToken 
-    getAuthenticationToken(String token){
+    private UsernamePasswordAuthenticationToken getAuthenticationToken(String token){
         if(jwtUtil.isValidToken(token)){
             String email = jwtUtil.getUserName(token);
-            Usuario usuario = (Usuario)
-            userDetailsSecurityServer.loadUserByUsername(email);
-            return new UsernamePasswordAuthenticationToken(usuario,
-             null, usuario.getAuthorities());
+            Usuario usuario = (Usuario)userDetailsSecurityServer.loadUserByUsername(email);
+            return new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
         }
         return null;
     }
